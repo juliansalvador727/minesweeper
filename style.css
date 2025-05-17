@@ -2,20 +2,87 @@
   font-family: Inter;
 }
 
+h1 {
+  font-size: 2em;
+}
+
 body {
+  background-color: #1c1917;
+  opacity: 0.8;
+  background-image: radial-gradient(
+    #1e252f 0.35000000000000003px,
+    #1c1917 0.35000000000000003px
+  );
+  background-size: 7px 7px;
+  color: #d6d3d1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
 }
 
+/* HEADER SECTION */
+
 header {
-  background-color: #f8f9fa;
-  padding: 20px;
   text-align: center;
+  width: 640px;
+}
+
+/* GAME SECTION */
+
+#container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 540px;
+  border: 2px solid black;
+}
+
+/* SCOREBOARD */
+
+#scoreboard {
+  display: flex;
+  background-color: rgb(74, 117, 44);
+  width: 540px;
+  justify-content: space-between;
+}
+
+.align-left {
+  display: flex;
+  padding: 10px;
+}
+
+.align-center {
+  color: white;
+  display: flex;
+  padding: 10px;
+  gap: 15px;
+}
+
+.align-right {
+  display: flex;
+  padding: 10px;
+  align-items: center;
+}
+
+/* GAME BOARD / GRID */
+
+#board {
+  display: flex;
+  flex-wrap: wrap;
+  width: 540px;
+  height: 420px;
+}
+
+.grid-square {
+  width: 160px;
+  height: 160px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 footer {
-  background-color: #f8f9fa;
-  padding: 20px;
   text-align: center;
+  width: 540px;
 }

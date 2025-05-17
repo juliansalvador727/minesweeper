@@ -6,7 +6,13 @@
 // No 50/50 boards and guessing probabilities
 
 // First guess must be safe
-// If first guess is a mine, move mine to an empty cell, starting with top left corner
+// If first guess is a mine, regenerate the board
+
+const board = document.querySelector("#board");
+const container = document.querySelector("#container");
+const scoreboard = document.querySelector("#scoreboard");
+const flags = document.querySelector("#flag");
+const stopwatch = document.querySelector("#stopwatch");
 
 const EASY = {
   cols: 10,
@@ -56,12 +62,6 @@ const CELL_TEXT_COLOR = {
   8: "black",
 };
 
-const board = document.querySelector("#board");
-const container = document.querySelector("#container");
-const scoreboard = document.querySelector("#scoreboard");
-const flags = document.querySelector("#flags");
-const timer = document.querySelector("#timer");
-
 function placeMines(mines, rows, cols, safeRow, safeCol) {
   let placed = 0;
 
@@ -79,8 +79,23 @@ function placeMines(mines, rows, cols, safeRow, safeCol) {
   }
 }
 
+function resetGame() {
+  // Reset the game state
+  seconds = 0;
+  firstClick = true;
+  currentMineCount = 0;
+  currentDifficulty = MEDIUM;
+
+  // Clear the board and reset the timer
+  board.innerHTML = "";
+  stopwatch.textContent = "⏱️: 0";
+}
+
+let seconds = 0;
 let grid = [];
 let firstClick = true;
+let currentMineCount = 0;
+let currentDifficulty = MEDIUM;
 
 function calculateAdjacentMines(rows, cols) {
   const directions = [-1, 0, 1];
@@ -116,6 +131,20 @@ function calculateAdjacentMines(rows, cols) {
   }
 }
 
+function checkWinCondition() {
+  for (let row of grid) {
+    for (let cell of row) {
+      if (!cell.revealed && !cell.mine) {
+        console.log("win condition not met");
+        return false;
+      }
+    }
+  }
+  endGame(true);
+  console.log("win condition met");
+  return true;
+}
+
 function revealCell(row, col) {
   const cell = grid[row][col];
   if (cell.revealed || cell.flagged) return;
@@ -129,8 +158,13 @@ function revealCell(row, col) {
   cell.element.style.color = "white";
   if (cell.mine) {
     cell.element.textContent = "💣";
+    cell.element.classList.add("exploded");
     cell.element.style.backgroundColor = "red";
-    alert("Game Over! You hit a mine.");
+    setTimeout(() => {
+      alert("Game Over! You hit a mine.");
+      resetGame();
+      generateBoard(currentDifficulty);
+    }, 1000);
     return;
   }
 
@@ -161,12 +195,72 @@ function revealCell(row, col) {
       }
     }
   }
+  checkWinCondition();
 }
 
+function toggleFlag(row, col) {
+  const cell = grid[row][col];
+  if (cell.revealed) return;
+  if (cell.flagged) {
+    cell.flagged = false;
+    cell.element.textContent = "";
+  } else {
+    cell.flagged = true;
+    cell.element.style.textAlign = "center";
+    cell.element.textContent = "🚩";
+  }
+
+  updateFlagCount();
+}
+
+function updateFlagCount() {
+  const flaggedCount = countFlaggedCells();
+  const remaining = currentMineCount - flaggedCount;
+  document.getElementById("flag").textContent = `🚩: ${remaining}`;
+}
+
+function countFlaggedCells() {
+  let count = 0;
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c].flagged) count++;
+    }
+  }
+  return count;
+}
 function isInSafeZone(r, c, safeRow, safeCol) {
   if (r === safeRow && c === safeCol) return true;
   if (Math.abs(r - safeRow) <= 1 && Math.abs(c - safeCol) <= 1) return true;
   return false;
+}
+
+function endGame(win) {
+  console.log("endGame called!");
+  for (let row of grid) {
+    for (let cell of row) {
+      if (cell.mine) {
+        cell.element.textContent = "💣";
+        cell.element.style.backgroundColor = win ? "#bdf" : "red";
+      }
+    }
+  }
+  for (let row of grid) {
+    for (let cell of row) {
+      cell.element.onclick = null;
+      cell.element.oncontextmenu = null;
+    }
+  }
+  setTimeout(() => {
+    alert(win ? "🎉 You Win!" : "💥 Game Over!");
+  }, 100);
+}
+
+function stopWatch() {
+  if (seconds <= 999 && seconds >= 1) {
+    document.getElementById("stopwatch").textContent = `⏱️: ${seconds}`;
+    setTimeout(stopWatch, 1000);
+    ++seconds;
+  }
 }
 
 function generateBoard({
@@ -178,6 +272,9 @@ function generateBoard({
   boxWidthPx,
   boxHeightPx,
 }) {
+  //
+  document.getElementById("flag").textContent = `🚩: ${mines}`;
+  currentMineCount = mines;
   // layout dimensions
   board.style.width = `${boardWidthPx}px`;
   board.style.height = `${boardHeightPx}px`;
@@ -202,25 +299,27 @@ function generateBoard({
       const isEven = (r + c) % 2 === 0;
       cell.style.backgroundColor = isEven ? BOARD_COLOR.even : BOARD_COLOR.odd;
 
-      // event listener logic
+      // event listener logic, left click
       cell.addEventListener("click", () => {
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
         if (firstClick) {
           placeMines(mines, rows, cols, row, col);
           calculateAdjacentMines(rows, cols);
+          seconds++;
+          stopWatch();
           firstClick = false;
-          for (let row = 0; row < grid.length; row++) {
-            for (let col = 0; col < grid[row].length; col++) {
-              if (grid[row][col].mine) {
-                grid[row][col].element.textContent = "💣";
-              }
-            }
-          }
           revealCell(row, col);
         } else {
           revealCell(row, col);
         }
+      });
+      // event listener logic, right click
+      cell.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+        toggleFlag(row, col);
       });
 
       board.appendChild(cell);
@@ -238,4 +337,4 @@ function generateBoard({
   }
 }
 
-generateBoard(EASY);
+generateBoard(currentDifficulty);

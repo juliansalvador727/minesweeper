@@ -74,7 +74,39 @@ header {
   height: 420px;
 }
 
+.cell {
+  transition: filter 0.05s;
+}
+
+.cell:not(.revealed):hover {
+  filter: brightness(1.1);
+}
+
 footer {
   text-align: center;
   width: 540px;
+}
+
+/* animations */
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    background-color: red;
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    background-color: orange;
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    background-color: darkred;
+    opacity: 0.6;
+  }
+}
+
+.cell.exploded {
+  animation: explode 0.4s ease;
+  color: white;
 }

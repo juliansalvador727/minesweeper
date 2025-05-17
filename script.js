@@ -38,6 +38,24 @@ const HARD = {
   boxHeightPx: 25,
 };
 
+const BOARD_COLOR = {
+  even: "rgb(170,215,81)",
+  odd: "rgb(162,209,73)",
+  evenRevealed: "rgb(229,194,159)",
+  oddRevealed: "rgb(215,184,153)",
+};
+
+const CELL_TEXT_COLOR = {
+  1: "rgb(25,118,210)",
+  2: "rgb(56,142, 60)",
+  3: "rgb(211, 69, 64)",
+  4: "rgb(123, 31, 162)",
+  5: "rgb(253, 145, 7)",
+  6: "rgb(0, 151,167)",
+  7: "black",
+  8: "black",
+};
+
 const board = document.querySelector("#board");
 const container = document.querySelector("#container");
 const scoreboard = document.querySelector("#scoreboard");
@@ -51,11 +69,11 @@ function placeMines(mines, rows, cols, safeRow, safeCol) {
     const r = Math.floor(Math.random() * rows);
     const c = Math.floor(Math.random() * cols);
 
-    // Skip the safe cell and its 8 neighbors
     if (isInSafeZone(r, c, safeRow, safeCol)) continue;
 
     if (!grid[r][c].mine) {
       grid[r][c].mine = true;
+      grid[r][c].element.style.textAlign = "center";
       placed++;
     }
   }
@@ -104,8 +122,11 @@ function revealCell(row, col) {
 
   cell.revealed = true;
   cell.element.classList.add("revealed");
-  cell.element.style.backgroundColor = "#eee";
-
+  const isEven = (row + col) % 2 === 0;
+  cell.element.style.backgroundColor = isEven
+    ? BOARD_COLOR.evenRevealed
+    : BOARD_COLOR.oddRevealed;
+  cell.element.style.color = "white";
   if (cell.mine) {
     cell.element.textContent = "💣";
     cell.element.style.backgroundColor = "red";
@@ -115,6 +136,10 @@ function revealCell(row, col) {
 
   if (cell.adjacentMines > 0) {
     cell.element.textContent = cell.adjacentMines;
+    cell.element.style.color = CELL_TEXT_COLOR[cell.adjacentMines];
+    cell.element.style.fontWeight = "bold";
+    cell.element.style.fontSize = "1.2em";
+    cell.element.style.textAlign = "center";
     return;
   }
 
@@ -175,9 +200,7 @@ function generateBoard({
       cell.style.lineHeight = `${boxHeightPx}px`;
       cell.style.boxSizing = "border-box";
       const isEven = (r + c) % 2 === 0;
-      cell.style.backgroundColor = isEven
-        ? "rgb(170,215,81)"
-        : "rgb(162,209,73)";
+      cell.style.backgroundColor = isEven ? BOARD_COLOR.even : BOARD_COLOR.odd;
 
       // event listener logic
       cell.addEventListener("click", () => {
@@ -187,14 +210,13 @@ function generateBoard({
           placeMines(mines, rows, cols, row, col);
           calculateAdjacentMines(rows, cols);
           firstClick = false;
-          // show mines - debugging
-          // for (let row = 0; row < grid.length; row++) {
-          //   for (let col = 0; col < grid[row].length; col++) {
-          //     if (grid[row][col].mine) {
-          //       grid[row][col].element.textContent = "💣";
-          //     }
-          //   }
-          // }
+          for (let row = 0; row < grid.length; row++) {
+            for (let col = 0; col < grid[row].length; col++) {
+              if (grid[row][col].mine) {
+                grid[row][col].element.textContent = "💣";
+              }
+            }
+          }
           revealCell(row, col);
         } else {
           revealCell(row, col);
@@ -216,4 +238,4 @@ function generateBoard({
   }
 }
 
-generateBoard(HARD);
+generateBoard(EASY);

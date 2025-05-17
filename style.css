@@ -36,7 +36,6 @@ header {
   align-items: center;
   justify-content: center;
   width: 540px;
-  border: 2px solid black;
 }
 
 /* SCOREBOARD */
@@ -73,13 +72,6 @@ header {
   flex-wrap: wrap;
   width: 540px;
   height: 420px;
-}
-
-.grid-square {
-  width: 160px;
-  height: 160px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
 }
 
 footer {
